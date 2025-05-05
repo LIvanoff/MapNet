@@ -36,7 +36,8 @@ class MapFM(MVXTwoStageDetector):
                  video_test_mode=False,
                  modality='vision',
                  lidar_encoder=None,
-                 concat_features_after_backbone=False
+                 concat_features_after_backbone=False,
+                 reverse_feats=False
                  ):
 
         super(MapFM,
@@ -50,6 +51,7 @@ class MapFM(MVXTwoStageDetector):
         self.use_grid_mask = use_grid_mask
         self.fp16_enabled = False
         self.concat_features_after_backbone = concat_features_after_backbone
+        self.reverse_feats = reverse_feats
 
         # temporal
         self.video_test_mode = video_test_mode
@@ -100,10 +102,17 @@ class MapFM(MVXTwoStageDetector):
                 img_feats = list(img_feats.values())
             if len(img_feats) > 1 and self.concat_features_after_backbone:
                 img_feats = [torch.cat(img_feats, axis=1)]
+            if len(img_feats) > 1 and self.reverse_feats:
+                img_feats = list(img_feats)
+                img_feats.reverse()
         else:
             return None
         if self.with_img_neck:
             img_feats = self.img_neck(img_feats)
+            
+        if len(img_feats) > 1 and self.reverse_feats:
+            # import ipdb; ipdb.set_trace()
+            img_feats = [img_feats[0]]
 
         img_feats_reshaped = []
         for img_feat in img_feats:
