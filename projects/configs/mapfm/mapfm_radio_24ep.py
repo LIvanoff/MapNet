@@ -58,7 +58,7 @@ bev_w_ = 100
 queue_length = 1 # each sequence contains `queue_length` frames.
 
 img_backbone_type = 'RADIO'
-feat_down_sample = 16
+size_divisor = 16
 aux_seg_cfg = dict(
     use_aux_seg=True,
     bev_seg=True,
@@ -67,7 +67,7 @@ aux_seg_cfg = dict(
     seg_classes=1,
     segmap_classes=2, # layers=['ped_crossing', 'drivable_area', 'road_segment']
     feat_down_sample=dict(
-                        value=feat_down_sample,
+                        value=size_divisor,
                         img_backone=img_backbone_type,
     ),
     pv_thickness=1,
