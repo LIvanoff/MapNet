@@ -264,7 +264,8 @@ train_pipeline = [
 
 test_pipeline = [
     dict(type='LoadMultiViewImageFromFiles', to_float32=True),
-    dict(type='RandomScaleImageMultiViewImage', scales=[0.5]),
+    # dict(type='RandomScaleImageMultiViewImage', scales=[0.5]),
+    dict(type='ResizeMultiViewImage', img_scale=(784, 448), keep_ratio=False),
     dict(type='NormalizeMultiviewImage', **img_norm_cfg),
    
     dict(
