@@ -273,7 +273,7 @@ test_pipeline = [
             dict(type='CustomCollect3D', keys=['img'])
         ])
 ]
-samples_per_gpu=4
+samples_per_gpu=1
 data = dict(
     samples_per_gpu=samples_per_gpu,
     workers_per_gpu=4, # TODO 12
