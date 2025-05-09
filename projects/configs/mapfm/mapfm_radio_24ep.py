@@ -82,10 +82,11 @@ model = dict(
     img_backbone=dict(
         type=img_backbone_type,
         model_version='e-radio_v2',
+        chunk_size=6,
     ),
     img_neck=dict(
         type='FPN',
-        in_channels=[768],
+        in_channels=[1536],
         out_channels=_dim_,
         start_level=0,
         add_extra_convs='on_output',
