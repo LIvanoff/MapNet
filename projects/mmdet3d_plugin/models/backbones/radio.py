@@ -20,6 +20,8 @@ class RADIO(BaseModule):
         if "e-radio_v2" in model_version:
             self.radio.model.set_optimal_window_size(img_size)
         
+        for param in self.radio.parameters():
+            param.requires_grad = False
         
         #self._freeze_stages()
         
@@ -40,7 +42,7 @@ class RADIO(BaseModule):
             
             # nearest_res = self.model.get_nearest_supported_resolution(*x.shape[-2:])
             # x_chunk = F.interpolate(x_chunk, nearest_res, mode='bilinear', align_corners=False)
-            
+            x_chunk = x_chunk.to(torch.bfloat16).cuda()
             _, spatial_features = self.radio(x_chunk, feature_fmt='NCHW')
             assert spatial_features.ndim == 4
             spatial_outputs.append(spatial_features)

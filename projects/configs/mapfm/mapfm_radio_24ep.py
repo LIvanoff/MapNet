@@ -82,7 +82,7 @@ model = dict(
     img_backbone=dict(
         type=img_backbone_type,
         model_version='radio_v2.5-b',
-        chunk_size=6,
+        chunk_size=None,
     ),
     img_neck=dict(
         type='FPN',
@@ -276,7 +276,7 @@ test_pipeline = [
             dict(type='CustomCollect3D', keys=['img'])
         ])
 ]
-samples_per_gpu=1
+samples_per_gpu=4
 data = dict(
     samples_per_gpu=samples_per_gpu,
     workers_per_gpu=4, # TODO 12
