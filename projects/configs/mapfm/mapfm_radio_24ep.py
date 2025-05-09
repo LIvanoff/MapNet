@@ -81,7 +81,7 @@ model = dict(
     video_test_mode=False,
     img_backbone=dict(
         type=img_backbone_type,
-        model_version='radio_v2.5-b',
+        model_version='e-radio_v2',
     ),
     img_neck=dict(
         type='FPN',
@@ -275,7 +275,7 @@ test_pipeline = [
             dict(type='CustomCollect3D', keys=['img'])
         ])
 ]
-samples_per_gpu=1
+samples_per_gpu=4
 data = dict(
     samples_per_gpu=samples_per_gpu,
     workers_per_gpu=4, # TODO 12
@@ -374,18 +374,18 @@ log_config = dict(
     interval=100,
     hooks=[
         dict(type='TextLoggerHook'),
-        # dict(type='TensorboardLoggerHook'),
-        # dict(
-        #     type='WandbLoggerHook',
-        #     init_kwargs=dict(
-        #         project='MapNet',   # Название проекта в WandB
-        #         name='radio',     # Имя эксперимента
-        #         config=dict(                # Дополнительные настройки эксперимента
-        #             batch_size=2*samples_per_gpu,
-        #             model='mapqr',
-        #         )
-        #     )
-        # )
+        dict(type='TensorboardLoggerHook'),
+        dict(
+            type='WandbLoggerHook',
+            init_kwargs=dict(
+                project='MapNet',   # Название проекта в WandB
+                name='radio',     # Имя эксперимента
+                config=dict(                # Дополнительные настройки эксперимента
+                    batch_size=2*samples_per_gpu,
+                    model='mapfm',
+                )
+            )
+        )
     ])
 fp16 = dict(loss_scale=512.)
 checkpoint_config = dict(max_keep_ckpts=5, interval=1)

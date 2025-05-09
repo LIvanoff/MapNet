@@ -12,8 +12,11 @@ class RADIO(BaseModule):
                  ):
         super(RADIO, self).__init__()
         self.model = torch.hub.load('NVlabs/RADIO', 'radio_model', version=model_version, progress=True, skip_validation=True)
-        if "e-radio" in model_version:
+        if "e-radio_v2" in model_version:
             self.model.model.set_optimal_window_size(img_size)
+        
+        if freeze is None:
+            self.model.eval()
         
         #self._freeze_stages()
         
