@@ -257,7 +257,7 @@ class SegMapHead(DETRHead):
                 )
             if self.aux_seg['pv_seg']:
                 if isinstance(self.aux_seg['feat_down_sample'], dict):
-                    if self.aux_seg['feat_down_sample']['img_backone'] == 'DINOv2':
+                    if self.aux_seg['feat_down_sample']['img_backone'] in ['DINOv2', 'DINOv2_LoRA']:
                         self.pv_seg_head = nn.Sequential(
                             nn.Conv2d(self.embed_dims, self.embed_dims, kernel_size=3, padding=1, bias=False),
                             # nn.BatchNorm2d(128),
@@ -482,7 +482,7 @@ class SegMapHead(DETRHead):
             if self.aux_seg['pv_seg']:
                 outputs_pv_seg = self.pv_seg_head(mlvl_feats[-1].flatten(0,1))
                 if isinstance(self.aux_seg['feat_down_sample'], dict):
-                    if self.aux_seg['feat_down_sample']['img_backone'] == 'DINOv2':
+                    if self.aux_seg['feat_down_sample']['img_backone'] in ['DINOv2', 'DINOv2_LoRA']:
                         outputs_pv_seg = outputs_pv_seg.view(bs, num_cam, -1, feat_h, feat_w)
                 else:
                     if self.aux_seg['feat_down_sample'] == 32:
