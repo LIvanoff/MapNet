@@ -28,8 +28,8 @@ class RADIO(BaseModule):
     def forward(self, x):
         x = x.div(255.0)  # Без in-place — безопаснее для автоград
         B = x.size(0)
-        if self.chunk_size is None: self.chunk_size = B
-        assert B % self.chunk_size == 0, "Количество входных изображений должно быть кратно 6"
+        # if self.chunk_size is None: self.chunk_size = B
+        assert B % self.chunk_size == 0, "self.chunk_size должно быть кратно 6"
         
         
         if self.freeze is None:
@@ -37,14 +37,20 @@ class RADIO(BaseModule):
 
         spatial_outputs = []
 
-        for i in range(0, B, self.chunk_size):
-            x_chunk = x[i:i + self.chunk_size]
-            
-            # nearest_res = self.model.get_nearest_supported_resolution(*x.shape[-2:])
-            # x_chunk = F.interpolate(x_chunk, nearest_res, mode='bilinear', align_corners=False)
-            x_chunk = x_chunk.to(torch.bfloat16).cuda()
-            _, spatial_features = self.radio(x_chunk, feature_fmt='NCHW')
+        if self.chunk_size:
+            for i in range(0, B, self.chunk_size):
+                x_chunk = x[i:i + self.chunk_size].contiguous()
+                
+                # nearest_res = self.model.get_nearest_supported_resolution(*x.shape[-2:])
+                # x_chunk = F.interpolate(x_chunk, nearest_res, mode='bilinear', align_corners=False)
+                # x_chunk = x_chunk.to(torch.bfloat16).cuda()
+                _, spatial_features = self.radio(x_chunk, feature_fmt='NCHW')
+                assert spatial_features.ndim == 4
+                spatial_outputs.append(spatial_features)
+            spatial_outputs = torch.cat(spatial_outputs, dim=0)
+        else:
+            _, spatial_features = self.radio(x, feature_fmt='NCHW')
             assert spatial_features.ndim == 4
-            spatial_outputs.append(spatial_features)
+            spatial_outputs = spatial_features
 
-        return [torch.cat(spatial_outputs, dim=0)]
+        return [spatial_outputs]
