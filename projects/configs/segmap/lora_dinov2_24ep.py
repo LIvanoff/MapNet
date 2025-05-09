@@ -389,7 +389,7 @@ log_config = dict(
                 project='MapNet',   # Название проекта в WandB
                 name='dinov2-small + lora 2 layers',     # Имя эксперимента
                 config=dict(                # Дополнительные настройки эксперимента
-                    batch_size=samples_per_gpu,
+                    batch_size=2*samples_per_gpu,
                     model='mapqr',
                 )
             )
