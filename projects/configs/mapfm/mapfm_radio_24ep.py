@@ -66,10 +66,7 @@ aux_seg_cfg = dict(
     segmap=False,
     seg_classes=1,
     segmap_classes=2, # layers=['ped_crossing', 'drivable_area', 'road_segment']
-    feat_down_sample=dict(
-                        value=size_divisor,
-                        img_backone=img_backbone_type,
-    ),
+    feat_down_sample=size_divisor,
     pv_thickness=1,
     lidar_bev_maps=False,
     lidar_bev_maps_count=2,
