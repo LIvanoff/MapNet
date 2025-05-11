@@ -29,7 +29,6 @@ class RADIO(BaseModule):
         x = x.div(255.0)  # Без in-place — безопаснее для автоград
         B = x.size(0)
         # if self.chunk_size is None: self.chunk_size = B
-        assert B % self.chunk_size == 0, "self.chunk_size должно быть кратно 6"
         
         
         if self.freeze is None:
@@ -38,6 +37,7 @@ class RADIO(BaseModule):
         spatial_outputs = []
 
         if self.chunk_size:
+            # assert B % self.chunk_size == 0, "self.chunk_size должно быть кратно 6"
             for i in range(0, B, self.chunk_size):
                 x_chunk = x[i:i + self.chunk_size].contiguous()
                 
