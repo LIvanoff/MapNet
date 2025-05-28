@@ -1115,6 +1115,7 @@ class Dinov2Backbone(Dinov2PreTrainedModel, BackboneMixin):
         >>> list(feature_maps[-1].shape)
         [1, 768, 16, 16]
         ```"""
+        # import ipdb; ipdb.set_trace()
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
         output_hidden_states = (
             output_hidden_states if output_hidden_states is not None else self.config.output_hidden_states
@@ -1163,6 +1164,7 @@ class DINOv2(BaseModule):
                  ignore_mismatched_sizes=True,
                  output_hidden_states=True,
                  frozen_stages=-1,
+                 mask_ratio=None
                  ):
         super(DINOv2, self).__init__()
         self.config = config
@@ -1170,6 +1172,7 @@ class DINOv2(BaseModule):
         self.ignore_mismatched_sizes = ignore_mismatched_sizes
         self.output_hidden_states = output_hidden_states
         self.frozen_stages = frozen_stages
+        self.mask_ratio = mask_ratio
         
         self.model = Dinov2Backbone.from_pretrained(self.config,
                                                     out_features = self.out_features,
@@ -1177,7 +1180,59 @@ class DINOv2(BaseModule):
                                                     )
         self._freeze_stages()
         
+    def apply_patch_mask_to_image_batch(self, img_batch, patch_size=14):
+        """
+        img_batch: [B*N, C, H, W]
+        mask_batch: [B*N, num_patches] — бинарная маска 0/1, где 1 — замаскировать патч
+        Возвращает: img_batch с замаскированными патчами (в цвет серый 0)
+        """
+        Bn, C, H, W = img_batch.shape
+        h = H // patch_size
+        w = W // patch_size
+        num_patches = h * w
+        # mask_batch = torch.randint(0, 2, (Bn, num_patches))
+        mask_batch = self.generate_random_mask(Bn, H, W)
+        assert mask_batch.shape == (Bn, num_patches), "Размер маски не совпадает с количеством патчей"
+
+        img_batch = img_batch.clone()
+
+        for idx in range(Bn):
+            img = img_batch[idx]
+            mask = mask_batch[idx].reshape(h, w)
+            for i in range(h):
+                for j in range(w):
+                    if mask[i, j] == 1:
+                        y1 = i * patch_size
+                        y2 = (i + 1) * patch_size
+                        x1 = j * patch_size
+                        x2 = (j + 1) * patch_size
+                        img[:, y1:y2, x1:x2] = 0  # серый цвет
+
+        return img_batch
+    
+    def generate_random_mask(self, batch_size, H, W, patch_size=14):
+        """
+        Возвращает бинарную маску [B, num_patches], где 1 — маскировать
+        """
+        h = H // patch_size
+        w = W // patch_size
+        num_patches = h * w
+        num_mask = int(self.mask_ratio * num_patches)
+
+        # Создаем маску на каждый элемент в батче
+        masks = []
+        for _ in range(batch_size):
+            idx = torch.randperm(num_patches)[:num_mask]
+            mask = torch.zeros(num_patches)
+            mask[idx] = 1
+            masks.append(mask)
+
+        return torch.stack(masks)  # [B, num_patches]
+        
     def forward(self, x):
+        # import ipdb; ipdb.set_trace()
+        if self.mask_ratio:
+            x = self.apply_patch_mask_to_image_batch(x)
         outputs = self.model(x, output_hidden_states=self.output_hidden_states)
         feature_maps = outputs.feature_maps
         # import ipdb; ipdb.set_trace()

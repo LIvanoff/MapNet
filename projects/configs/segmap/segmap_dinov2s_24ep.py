@@ -64,9 +64,9 @@ aux_seg_cfg = dict(
     use_aux_seg=True,
     bev_seg=True,
     pv_seg=True,
-    segmap=True,
+    segmap=False,
     seg_classes=1,
-    segmap_classes=3, # layers=['ped_crossing', 'drivable_area', 'road_segment']
+    segmap_classes=2, # layers=['ped_crossing', 'drivable_area', 'road_segment']
     feat_down_sample=dict(
                         value=size_divisor,
                         img_backone=img_backbone_type,
@@ -85,7 +85,8 @@ model = dict(
         out_features=["stage12"],
         ignore_mismatched_sizes=True,
         output_hidden_states=True,
-        frozen_stages=13, # 10 -> 9 freeze
+        frozen_stages=12, # 10 -> 9 freeze
+        mask_ratio=0.5,
     ),
     img_neck=dict(
         type='FPN',
@@ -215,7 +216,7 @@ model = dict(
                     pos_weight=1.0,
                     loss_weight=2.0),
         loss_segmap=dict(type='DiceLoss',
-                    loss_weight=2.0),),
+                    loss_weight=0.0),),
     # model training and testing settings
     train_cfg=dict(pts=dict(
         grid_size=[512, 512, 1],
@@ -278,7 +279,7 @@ test_pipeline = [
             dict(type='CustomCollect3D', keys=['img'])
         ])
 ]
-samples_per_gpu=4
+samples_per_gpu=2
 data = dict(
     samples_per_gpu=samples_per_gpu,
     workers_per_gpu=4, # TODO 12
@@ -334,7 +335,7 @@ data = dict(
 
 optimizer = dict(
     type='AdamW',
-    lr=4e-4,
+    lr=6e-4,
     paramwise_cfg=dict(
         custom_keys={
             'img_backbone': dict(lr_mult=0.1),
@@ -356,7 +357,7 @@ optimizer_config = dict(cumulative_iters=4, grad_clip=dict(max_norm=35, norm_typ
 lr_config = dict(
     policy='CosineAnnealing',
     warmup='linear',
-    warmup_iters=2200,
+    warmup_iters=8800,
     warmup_ratio=1.0 / 3,
     min_lr_ratio=1e-3)
 # lr_config = dict(
@@ -377,12 +378,12 @@ log_config = dict(
     interval=100,
     hooks=[
         dict(type='TextLoggerHook'),
-        dict(type='TensorboardLoggerHook'),
+        # dict(type='TensorboardLoggerHook'),
         dict(
             type='WandbLoggerHook',
             init_kwargs=dict(
-                project='MapNet',   # Название проекта в WandB
-                name='dinov2-small 11 frz',     # Имя эксперимента
+                project='mapnet_test_with_bsz2',   # Название проекта в WandB
+                name='dinov2-s 12 frz + mask 0.5',     # Имя эксперимента
                 config=dict(                # Дополнительные настройки эксперимента
                     batch_size=samples_per_gpu,
                     model='mapqr',
